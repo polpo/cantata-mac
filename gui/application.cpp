@@ -33,6 +33,9 @@
 #include <QDir>
 #include <windows.h>
 #endif
+#ifdef Q_OS_MAC
+#include <QDir>
+#endif
 #endif
 #include "icon.h"
 #include "icons.h"
@@ -215,7 +218,107 @@ void Application::load(const QStringList &files)
 }
 #endif // TAGLIB_FOUND
 
-#else // Q_OS_WIN
+#elif defined Q_OS_MAC
+Application::Application(int &argc, char **argv)
+    //: QtSingleApplication(argc, argv)
+    : QApplication(argc, argv) // FIXME - use QtSingleApplication
+{
+    #if defined TAGLIB_FOUND
+    connect(this, SIGNAL(messageReceived(const QString &)), SLOT(message(const QString &)));
+    #endif
+
+    connect(this, SIGNAL(reconnect()), MPDConnection::self(), SLOT(reconnect()));
+}
+
+void Application::setupIconTheme()
+{
+    QString cfgTheme=Settings::self()->iconTheme();
+    if (!cfgTheme.isEmpty()) {
+		QIcon::setThemeName(cfgTheme);
+    }
+
+	QIcon::setThemeSearchPaths(QStringList("/Users/ian/cantata/icons"));
+
+    QString theme=Icon::themeName().toLower();
+    if (QLatin1String("oxygen")!=theme && !QIcon::hasThemeIcon("document-save-as")) {
+        QStringList paths=QIcon::themeSearchPaths();
+
+        foreach (const QString &p, paths) {
+            if (QDir(p+QLatin1String("/oxygen")).exists()) {
+                QIcon::setThemeName(QLatin1String("oxygen"));
+                return;
+            }
+        }
+    }
+}
+
+bool Application::start()
+{
+    /* FIXME - related to QtSingleApplication
+    if (isRunning()) {
+        #ifdef TAGLIB_FOUND
+        QStringList args(arguments());
+        if (args.count()>1) {
+            args.takeAt(0);
+            sendMessage(args.join("\n"));
+        } else
+        #endif
+            sendMessage(QString());
+        return false;
+    }
+    */
+
+    setupIconTheme();
+    return true;
+}
+
+/* FIXME - related to QtSingleApplication
+void Application::message(const QString &msg)
+{
+    #if defined TAGLIB_FOUND
+    if (!msg.isEmpty()) {
+        load(msg.split("\n"));
+    }
+    #else
+    Q_UNUSED(msg)
+    #endif
+    MainWindow *mw=qobject_cast<MainWindow *>(activationWindow());
+    if (mw) {
+        mw->restoreWindow();
+    }
+}
+*/
+
+#if defined TAGLIB_FOUND
+void Application::loadFiles()
+{
+    QStringList args(arguments());
+    if (args.count()>1) {
+        args.takeAt(0);
+        load(args);
+    }
+}
+
+void Application::load(const QStringList &files)
+{
+    if (files.isEmpty()) {
+        return;
+    }
+
+    QStringList urls;
+    foreach (const QString &f, files) {
+        urls.append(f);
+    }
+    if (!urls.isEmpty()) {
+        MainWindow *mw=qobject_cast<MainWindow *>(activationWindow());
+        if (mw) {
+            mw->load(urls);
+        }
+    }
+}
+#endif // TAGLIB_FOUND
+
+#else // Q_OS_WIN || Q_OS_MAC
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDir>

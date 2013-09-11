@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
         }
     }
     MainWindow mw;
-    app.setActivationWindow(&mw);
+    //app.setActivationWindow(&mw); //FIXME
     #ifdef TAGLIB_FOUND
     app.loadFiles();
     #endif // TAGLIB_FOUND

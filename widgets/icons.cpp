@@ -32,7 +32,7 @@
 #include <QDir>
 #include <QFile>
 #include <math.h>
-#ifndef Q_OS_WIN
+#if !defined Q_OS_WIN && !defined Q_OS_MAC
 #include "gtkstyle.h"
 #endif
 

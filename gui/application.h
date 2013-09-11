@@ -75,6 +75,38 @@ private Q_SLOTS:
 Q_SIGNALS:
     void reconnect();
 };
+#elif defined Q_OS_MAC || defined __APPLE__   // moc does not seem to see Q_OS_WIN, but will see WIN32 :-(
+//#include "qtsingleapplication/qtsingleapplication.h"
+//class Application : public QtSingleApplication
+#include <QApplication>
+class Application : public QApplication
+{
+//    Q_OBJECT
+
+public:
+    Application(int &argc, char **argv);
+    virtual ~Application() { }
+
+    bool start();
+    #if defined TAGLIB_FOUND
+    void loadFiles();
+    #endif // TAGLIB_FOUND
+    void setupIconTheme();
+
+private:
+    #if defined TAGLIB_FOUND
+    void load(const QStringList &files);
+    #endif
+
+/*
+private Q_SLOTS:
+    #if defined TAGLIB_FOUND
+    void message(const QString &m);
+
+Q_SIGNALS:
+    void reconnect();
+*/
+};
 #else
 #include <QApplication>
 class Application : public QApplication
