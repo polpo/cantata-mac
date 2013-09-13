@@ -212,6 +212,7 @@ MainWindow::MainWindow(QWidget *parent)
     , httpStream(0)
     #endif
 {
+    QMainWindow::setUnifiedTitleAndToolBarOnMac(true);
     QPoint p=pos();
 
     ActionCollection::setMainWidget(this);
